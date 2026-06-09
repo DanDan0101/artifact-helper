@@ -10,21 +10,8 @@
 4. Parse each OCR output into Artifact objects.
 5. Export all Artifacts to JSON, according to the [Genshin Open Object Description (GOOD) V3](https://frzyc.github.io/genshin-optimizer/#/doc) standard.
 
-## Dependencies (update `pyproject.toml` later)
+## Installation
 
-* `jupytext`
-* `jupyter`
-* `ipython`
-* `numpy`
-* `scipy`
-* `numba`
-* `pandas`
-* `h5py`
-* `matplotlib`
-* `seaborn`
-* `tqdm`
-* `multiprocess`
-* `Pillow`
-* `av` (maybe)
-* `imageio`
-* `pytesseract`
+This repository uses [pixi](https://pixi.prefix.dev/latest/) for package management ([installation instructions](https://pixi.prefix.dev/latest/installation/)).
+
+After installing pixi, simply run `pixi shell` within this repository's root directory.
