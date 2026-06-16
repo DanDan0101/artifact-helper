@@ -2,8 +2,8 @@
 
 1. Use a screen-recording software such as [OBS Studio](https://obsproject.com/) to record a video of you clicking through all the artifacts in your inventory. My video has the following properties:
     * File format: `.mkv`
-    * Resolution: $3240\times2160$
-    * Frame rate: 60 fps
+    * Resolution: $1620\times1080$
+    * Frame rate: 30 fps
     * Video codec: H.264
 2. Preprocess the video into a series of cropped photos showing the artifact information for each artifact.
 3. Use [Python-tesseract](https://github.com/madmaze/pytesseract) to perform optical character recognition (OCR) on the cropped photos.
