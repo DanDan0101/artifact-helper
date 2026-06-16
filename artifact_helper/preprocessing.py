@@ -1,9 +1,13 @@
+"""
+Utilities for preprocessing video files.
+Constants are hardcoded for my specific resolution of 1620x1080 @ 30 fps.
+"""
+
 from pathlib import Path
 from typing import Tuple
 
 import numpy as np
-
-# from matplotlib import pyplot as plt
+from scipy.signal import find_peaks
 from tqdm import tqdm
 
 import imageio.v3 as iio
@@ -14,14 +18,26 @@ ARTIFACT_SIZE = (868, 404)
 
 
 def n_frames(file_path: Path) -> int:
-    metadata = iio.immeta(file_path, plugin="pyav")
-    fps = metadata["fps"]
-    duration = metadata["DURATION"]
-    hours, minutes, seconds = map(float, duration.split(":"))
-    seconds += hours * 3600 + minutes * 60
-    # Idk why 2 frames are missing, fudge factor results from testing a single video
-    # TODO: test more videos to see if the -2 is consistent
-    return int(np.rint(seconds * fps) - 2)
+    """
+    Counts the total number of frames in a video.
+
+    For some reason, the .mkv containers are missing the metadata for total frames.
+    For some even more bizarre reason, calculating total frames from duration and fps metadata
+    results in different total frames than the count from iterating through all frames.
+    This direct method is acceptably fast for 1620x1080 @ 30 fps.
+
+    Args:
+        file_path (Path): Path to video file.
+
+    Returns:
+        int: Total number of frames in the video.
+    """
+
+    frames = 0
+    for _ in iio.imiter(file_path, plugin="pyav", thread_type="FRAME"):
+        frames += 1
+
+    return frames
 
 
 def crop_frame(
@@ -29,16 +45,68 @@ def crop_frame(
     loc: Tuple[int, int] = ARTIFACT_LOC,
     size: Tuple[int, int] = ARTIFACT_SIZE,
 ) -> np.ndarray:
-    # Casting to int makes a copy and is therefore slow
-    # TODO: Optimize
+    """
+    Crops a video frame to the artifact card.
+
+    Casting to np.float32 incurs a slowdown from making a copy,
+    but taking differences between adjacent frames results in overflow with uint8.
+    Some brief testing shows that np.float32 has the fastest performance.
+
+    Args:
+        frame (np.ndarray): Uncropped video frame.
+        loc (Tuple[int, int], optional): Top left corner of artifact card (h, w). Defaults to ARTIFACT_LOC.
+        size (Tuple[int, int], optional): Size of the artifact card (h, w). Defaults to ARTIFACT_SIZE.
+
+    Returns:
+        np.ndarray: Cropped video frame, with size ARTIFACT_SIZE and dtype np.float32.
+    """
+    assert frame.shape == (
+        WINDOW_SIZE[0],
+        WINDOW_SIZE[1],
+        3,
+    ), f"Expected {WINDOW_SIZE[1]}x{WINDOW_SIZE[0]} resolution, but got {frame.shape[1]}x{frame.shape[0]}"
+
     return frame[loc[0] : loc[0] + size[0], loc[1] : loc[1] + size[1], :].astype(
         np.float32
     )
 
 
-def iter_frames(file_path: Path) -> tqdm:
-    return tqdm(
-        iio.imiter(file_path, plugin="pyav", thread_type="FRAME"),
-        total=n_frames(file_path),
-        unit="frames",
-    )
+def find_keyframes(
+    file_path: Path, distance: int = 3, prominence: int = 5
+) -> np.ndarray:
+    """
+    Finds the keyframes in a video corresponding to unique artifacts.
+
+    Works by calculating the RMS difference between adjacent frames,
+    then sorting peaks by distance and prominence.
+    Default parameters work well for 1620x1080 @ 30 fps.
+
+    Args:
+        file_path (Path): Path to video file.
+        distance (int, optional): Minimum distance between peaks. Defaults to 3.
+        prominence (int, optional): Minimum prominence of peaks. Defaults to 5.
+
+    Returns:
+        np.ndarray: Indices of keyframes in the video.
+    """
+
+    prev_frame = crop_frame(iio.imread(file_path, plugin="pyav", index=0))
+    diffs = np.empty(n_frames(file_path), dtype=np.float32)
+
+    for i, frame in enumerate(
+        tqdm(
+            iio.imiter(file_path, plugin="pyav", thread_type="FRAME"),
+            total=n_frames(file_path),
+            unit="frames",
+            desc="Finding keyframes",
+        )
+    ):
+        curr_frame = crop_frame(frame)
+        diff = np.sqrt(np.mean((curr_frame - prev_frame) ** 2))  # RMS
+        diffs[i] = diff
+        prev_frame = curr_frame
+
+    diffs = np.array(diffs)
+    peaks = find_peaks(diffs, distance=distance, prominence=prominence)[0]
+
+    return np.insert(peaks, 0, 0)  # First frame has 0 diff, but is a unique artifact
