@@ -48,17 +48,13 @@ def crop_frame(
     """
     Crops a video frame to the artifact card.
 
-    Casting to np.float32 incurs a slowdown from making a copy,
-    but taking differences between adjacent frames results in overflow with uint8.
-    Some brief testing shows that np.float32 has the fastest performance.
-
     Args:
         frame (np.ndarray): Uncropped video frame.
         loc (Tuple[int, int], optional): Top left corner of artifact card (h, w). Defaults to ARTIFACT_LOC.
         size (Tuple[int, int], optional): Size of the artifact card (h, w). Defaults to ARTIFACT_SIZE.
 
     Returns:
-        np.ndarray: Cropped video frame, with size ARTIFACT_SIZE and dtype np.float32.
+        np.ndarray: Cropped video frame, with size ARTIFACT_SIZE.
     """
     assert frame.shape == (
         WINDOW_SIZE[0],
@@ -66,9 +62,9 @@ def crop_frame(
         3,
     ), f"Expected {WINDOW_SIZE[1]}x{WINDOW_SIZE[0]} resolution, but got {frame.shape[1]}x{frame.shape[0]}"
 
-    return frame[loc[0] : loc[0] + size[0], loc[1] : loc[1] + size[1], :].astype(
-        np.float32
-    )
+    cropped_frame = frame[loc[0] : loc[0] + size[0], loc[1] : loc[1] + size[1], :]
+
+    return cropped_frame
 
 
 def find_keyframes(
@@ -90,7 +86,9 @@ def find_keyframes(
         np.ndarray: Indices of keyframes in the video.
     """
 
-    prev_frame = crop_frame(iio.imread(file_path, plugin="pyav", index=0))
+    prev_frame = crop_frame(iio.imread(file_path, plugin="pyav", index=0)).astype(
+        np.float32
+    )
     diffs = np.empty(n_frames(file_path), dtype=np.float32)
 
     for i, frame in enumerate(
@@ -101,7 +99,7 @@ def find_keyframes(
             desc="Finding keyframes",
         )
     ):
-        curr_frame = crop_frame(frame)
+        curr_frame = crop_frame(frame).astype(np.float32)
         diff = np.sqrt(np.mean((curr_frame - prev_frame) ** 2))  # RMS
         diffs[i] = diff
         prev_frame = curr_frame
