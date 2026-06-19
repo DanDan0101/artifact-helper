@@ -6,11 +6,10 @@ Constants are hardcoded for my specific resolution of 1620x1080 @ 30 fps.
 from pathlib import Path
 from typing import Tuple
 
+import imageio.v3 as iio
 import numpy as np
 from scipy.signal import find_peaks
 from tqdm import tqdm
-
-import imageio.v3 as iio
 
 WINDOW_SIZE = (1080, 1620)  # h, w
 ARTIFACT_LOC = (106, 1109)  # Top left

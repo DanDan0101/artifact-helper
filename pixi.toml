@@ -1,5 +1,5 @@
 [workspace]
-authors = ["[Daniel Sun] <dansun@stanford.edu>"]
+authors = ["[Daniel Sun] <danielcsun@hotmail.com>"]
 channels = ["https://software.repos.intel.com/python/conda/", "conda-forge"]
 name = "artifact-helper"
 platforms = ["win-64"]
@@ -11,6 +11,7 @@ version = "0.1.0"
 python = ">=3.12.8,<3.13"
 black = ">=26.5.1,<27"
 black-jupyter = ">=26.5.1,<27"
+isort = ">=8.0.1,<9"
 mypy = ">=2.1.0,<3"
 pytest = ">=9.1.0,<10"
 sphinx = ">=9.1.0,<10"
