@@ -1,0 +1,12 @@
+repos:
+- repo: https://github.com/pycqa/isort
+  rev: 8.0.1
+  hooks:
+  - id: isort
+    args: [--treat-comment-as-code, "# %%", --float-to-top]
+
+- repo: https://github.com/psf/black
+  rev: 26.5.1
+  hooks:
+  - id: black
+    language_version: python3

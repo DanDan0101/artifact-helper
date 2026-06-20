@@ -15,13 +15,12 @@
 # %%
 from pathlib import Path
 
+import imageio.v3 as iio
 import numpy as np
 from matplotlib import pyplot as plt
 from tqdm.notebook import tqdm
 
-import imageio.v3 as iio
-
-from artifact_helper.preprocessing import n_frames, crop_frame, find_keyframes
+from artifact_helper.preprocessing import crop_frame, find_keyframes, n_frames
 
 # %%
 media_dir = "media"
