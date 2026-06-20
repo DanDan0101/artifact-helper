@@ -3,8 +3,9 @@ Utilities for preprocessing video files.
 Constants are hardcoded for my specific resolution of 1620x1080 @ 30 fps.
 """
 
+import functools
 from pathlib import Path
-from typing import Tuple
+from typing import Literal
 
 import imageio.v3 as iio
 import numpy as np
@@ -16,6 +17,7 @@ ARTIFACT_LOC = (106, 1109)  # Top left
 ARTIFACT_SIZE = (868, 404)
 
 
+@functools.cache
 def n_frames(file_path: Path) -> int:
     """
     Counts the total number of frames in a video.
@@ -41,16 +43,16 @@ def n_frames(file_path: Path) -> int:
 
 def crop_frame(
     frame: np.ndarray,
-    loc: Tuple[int, int] = ARTIFACT_LOC,
-    size: Tuple[int, int] = ARTIFACT_SIZE,
+    loc: tuple[int, int] = ARTIFACT_LOC,
+    size: tuple[int, int] = ARTIFACT_SIZE,
 ) -> np.ndarray:
     """
     Crops a video frame to the artifact card.
 
     Args:
         frame (np.ndarray): Uncropped video frame.
-        loc (Tuple[int, int], optional): Top left corner of artifact card (h, w). Defaults to ARTIFACT_LOC.
-        size (Tuple[int, int], optional): Size of the artifact card (h, w). Defaults to ARTIFACT_SIZE.
+        loc (tuple[int, int], optional): Top left corner of artifact card (h, w). Defaults to ARTIFACT_LOC.
+        size (tuple[int, int], optional): Size of the artifact card (h, w). Defaults to ARTIFACT_SIZE.
 
     Returns:
         np.ndarray: Cropped video frame, with size ARTIFACT_SIZE.
@@ -64,6 +66,32 @@ def crop_frame(
     cropped_frame = frame[loc[0] : loc[0] + size[0], loc[1] : loc[1] + size[1], :]
 
     return cropped_frame
+
+
+def read_cropped_frame(
+    file_path: Path,
+    index: int,
+    loc: tuple[int, int] = ARTIFACT_LOC,
+    size: tuple[int, int] = ARTIFACT_SIZE,
+    thread_type: Literal["SLICE", "FRAME"] = "SLICE",
+) -> np.ndarray:
+    """
+    Reads the artifact card from a specific frame in a video.
+
+    Args:
+        file_path (Path): Path to video file.
+        index (int): Index of frame to read.
+        loc (tuple[int, int], optional): Top left corner of artifact card (h, w). Defaults to ARTIFACT_LOC.
+        size (tuple[int, int], optional): Size of the artifact card (h, w). Defaults to ARTIFACT_SIZE.
+
+    Returns:
+        np.ndarray: Cropped video frame, with size ARTIFACT_SIZE.
+    """
+    return crop_frame(
+        iio.imread(file_path, plugin="pyav", index=index),
+        loc=loc,
+        size=size,
+    )
 
 
 def find_keyframes(
@@ -85,17 +113,16 @@ def find_keyframes(
         np.ndarray: Indices of keyframes in the video.
     """
 
-    prev_frame = crop_frame(iio.imread(file_path, plugin="pyav", index=0)).astype(
-        np.float32
-    )
+    prev_frame = read_cropped_frame(file_path, index=0).astype(np.float32)
     diffs = np.empty(n_frames(file_path), dtype=np.float32)
 
     for i, frame in enumerate(
         tqdm(
             iio.imiter(file_path, plugin="pyav", thread_type="FRAME"),
             total=n_frames(file_path),
-            unit="frames",
             desc="Finding keyframes",
+            unit="frames",
+            unit_scale=True,
         )
     ):
         curr_frame = crop_frame(frame).astype(np.float32)

@@ -20,7 +20,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from tqdm.notebook import tqdm
 
-from artifact_helper.preprocessing import crop_frame, find_keyframes, n_frames
+from artifact_helper.preprocessing import find_keyframes, n_frames, read_cropped_frame
 
 # %%
 media_dir = "media"
@@ -35,5 +35,8 @@ for path in Path(f"./{media_dir}").glob("*.mkv"):
 # %%
 peaks = find_keyframes(file_path)
 print(f"Detected {peaks.shape[0]} unique artifacts in {file_name}.")
+
+# %%
+test_img = read_cropped_frame(file_path, index=peaks[0])
 
 # %%
