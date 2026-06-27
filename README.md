@@ -15,3 +15,5 @@
 This respository uses [Tesseract](https://tesseract-ocr.github.io/) for OCR. Make sure to [install it](https://tesseract-ocr.github.io/tessdoc/Installation.html), and ensure that `tesseract` is in your `PATH`.
 
 This repository uses [pixi](https://pixi.prefix.dev/latest/) for package management ([installation instructions](https://pixi.prefix.dev/latest/installation/)). After installing pixi, simply run `pixi shell` within this repository's root directory.
+
+If you want to contribute, run `pre-commit install` to install pre-commit hooks.

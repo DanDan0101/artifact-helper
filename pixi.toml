@@ -15,11 +15,14 @@ isort = ">=8.0.1,<9"
 mypy = ">=2.1.0,<3"
 pytest = ">=9.1.1,<10"
 pre-commit = ">=4.6.0,<5"
+
 sphinx = ">=9.1.0,<10"
 sphinx-autoapi = ">=3.8.0,<4"
 sphinx-tabs = ">=3.5.0,<4"
+
 jupyter = ">=1.1.1,<2"
 jupytext = ">=1.19.3,<2"
+
 numpy = ">=2.3.2,<3"
 scipy = ">=1.16.3,<2"
 scipy-stubs = ">=1.16.3.3,<2"
@@ -31,9 +34,11 @@ seaborn = ">=0.13.2,<0.14"
 tqdm = ">=4.68.3,<5"
 types-tqdm = ">=4.68.0.20260608,<5"
 multiprocess = ">=0.70.19,<0.71"
+
 pillow = ">=12.2.0,<13"
 av = ">=16.0.1,<17"
 imageio = ">=2.37.0,<3"
 pytesseract = ">=0.3.13,<0.4"
+
 intelpython3_full = ">=2025.3.0,<2026"
 # nomkl = ">=1.0,<2"
