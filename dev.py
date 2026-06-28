@@ -15,13 +15,13 @@
 # %%
 from pathlib import Path
 
+import imageio.v3 as iio
 import numpy as np
 import pytesseract
 from matplotlib import pyplot as plt
 from tqdm.notebook import tqdm
 
 from artifact_helper.preprocessing import (
-    ARTIFACT_SIZE,
     find_keyframes,
     n_frames,
     read_cropped_frame,
@@ -30,28 +30,23 @@ from artifact_helper.preprocessing import (
 # %%
 media_dir = "media"
 file_format = "mkv"
-file_name = "artifacts_long"
+file_name = "artifacts_2026-06-28_00-32-14"
+
 file_path = Path(f"./{media_dir}/{file_name}.{file_format}")
+output_dir = Path(f"./{media_dir}/{file_name}")
 
 # %%
 for path in Path(f"./{media_dir}").glob("*.mkv"):
     print(f"{path.name[:-len(file_format)-1]} has {n_frames(path)} frames")
 
 # %%
-peaks = find_keyframes(file_path)
-print(f"Detected {peaks.shape[0]} unique artifacts in {file_name}.")
+keyframes = find_keyframes(file_path)
+print(f"Detected {keyframes.shape[0]} unique artifacts in {file_path.name}.")
 
 # %%
-
-# %%
-test_img = read_cropped_frame(file_path, index=peaks[0])
-fig = plt.figure(dpi=150)
-plt.imshow(test_img)
-plt.axis("off")
-plt.show()
-
-# %%
-test_str = pytesseract.image_to_string(test_img, lang="eng")
-test_data = pytesseract.image_to_data(test_img, lang="eng")
+for i, keyframe in enumerate(tqdm(keyframes)):
+    frame = read_cropped_frame(file_path, keyframe)
+    output_file = output_dir.joinpath(f"{i}.png")
+    iio.imwrite(output_file, frame)
 
 # %%
