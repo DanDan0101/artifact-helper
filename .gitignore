@@ -229,3 +229,6 @@ __marimo__/
 
 # Jupyter Notebook
 *.ipynb
+
+# Photos
+media/photos/

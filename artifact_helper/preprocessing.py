@@ -133,4 +133,13 @@ def find_keyframes(
     diffs = np.array(diffs)
     peaks = find_peaks(diffs, distance=distance, prominence=prominence)[0]
 
-    return np.insert(peaks, 0, 0)  # First frame has 0 diff, but is a unique artifact
+    centered_peaks = np.insert(
+        peaks, 0, 0
+    )  # First frame has 0 diff, but is a unique artifact
+    dt = np.zeros_like(centered_peaks)
+    dt[:-1] = np.diff(centered_peaks) // 2
+    dt[-1] = int(np.median(dt[:-1]))
+
+    centered_peaks += dt  # Choose central frame between artifact changes
+
+    return centered_peaks
