@@ -7,6 +7,9 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-illegal-windows-names
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
 
   - repo: https://github.com/pycqa/isort
     rev: 9.0.0a3
